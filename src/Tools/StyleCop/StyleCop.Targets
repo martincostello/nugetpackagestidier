@@ -1,0 +1,22 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup Condition="('$(SourceAnalysisEnabled)' != '') and ('$(StyleCopEnabled)' == '')">
+    <StyleCopEnabled>$(SourceAnalysisEnabled)</StyleCopEnabled>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(StyleCopEnabled)' == ''">
+    <StyleCopEnabled>true</StyleCopEnabled>
+  </PropertyGroup>
+  <PropertyGroup>
+    <StyleCopAnalyzersVersion>1.0.0-beta015</StyleCopAnalyzersVersion>
+    <StyleCopAnalyzersPackagePath>$(SolutionDir)packages\StyleCop.Analyzers.$(StyleCopAnalyzersVersion)\</StyleCopAnalyzersPackagePath>
+  </PropertyGroup>
+  <ItemGroup Condition="'$(StyleCopEnabled)' != 'false'">
+    <None Include="$(MSBuildThisFileDirectory)stylecop.json">
+      <Link>stylecop.json</Link>
+    </None>
+    <Analyzer Include="$(StyleCopAnalyzersPackagePath)analyzers\dotnet\cs\Newtonsoft.Json.dll" />
+    <Analyzer Include="$(StyleCopAnalyzersPackagePath)analyzers\dotnet\cs\StyleCop.Analyzers.CodeFixes.dll" />
+    <Analyzer Include="$(StyleCopAnalyzersPackagePath)analyzers\dotnet\cs\StyleCop.Analyzers.dll" />
+  </ItemGroup>
+  <Import Condition="'$(StyleCopEnabled)' != 'false' and Exists('$(StyleCopAnalyzersPackagePath)build\StyleCop.Analyzers.targets')"
+          Project="$(StyleCopAnalyzersPackagePath)build\StyleCop.Analyzers.targets" />
+</Project>

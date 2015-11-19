@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(SolutionDir)AssemblyVersion.targets" />
+  <PropertyGroup>
+    <Configuration Condition="'$(Configuration)' == ''">Release</Configuration>
+    <Platform Condition="'$(Platform)' == ''">Any CPU</Platform>
+    <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">$(MSBuildThisFileDirectory)</SolutionDir>
+    <SolutionFile>$(SolutionDir)NuGetPackagesTidier.sln</SolutionFile>
+    <OutputPath>$(SolutionDir)\BuildOutput</OutputPath>
+    <RunTests Condition="'$(RunTests)' == ''">true</RunTests>
+    <BuildProperties>Platform=$(Platform);OutputPath=$(OutputPath)</BuildProperties>
+    <CodeAnalysisTreatWarningsAsErrors Condition="'$(CodeAnalysisTreatWarningsAsErrors)' == ''">true</CodeAnalysisTreatWarningsAsErrors>
+    <CodeTaskFactoryAssembly>$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll</CodeTaskFactoryAssembly>
+    <CreateZip Condition="'$(CI)' != ''">true</CreateZip>
+    <CreateZip Condition="'$(CreateZip)' == ''">false</CreateZip>
+    <SourceAnalysisTreatErrorsAsWarnings Condition="'$(SourceAnalysisTreatErrorsAsWarnings)' == ''">false</SourceAnalysisTreatErrorsAsWarnings>
+    <TreatWarningsAsErrors Condition="'$(TreatWarningsAsErrors)' == ''">true</TreatWarningsAsErrors>
+  </PropertyGroup>
+  <Target Name="Clean">
+    <MSBuild Targets="Clean" Projects="$(SolutionFile)" Properties="Configuration=$(Configuration);$(BuildProperties)" />
+  </Target>
+  <Target Name="Build" DependsOnTargets="RestorePackages">
+    <MSBuild Targets="Build" Projects="$(SolutionFile)" Properties="Configuration=$(Configuration);$(BuildProperties)" />
+  </Target>
+  <Target Name="Rebuild" DependsOnTargets="RestorePackages">
+    <MSBuild Targets="Rebuild" Projects="$(SolutionFile)" Properties="Configuration=$(Configuration);$(BuildProperties)" />
+  </Target>
+  <Target Name="BeforeBuild" BeforeTargets="Build;Rebuild">
+    <CallTarget Targets="UpdateAssemblyConfiguration" Condition="'$(APPVEYOR_REPO_COMMIT)' != ''" />
+    <CallTarget Targets="SetGitHubReleaseDescription" Condition="'$(APPVEYOR)' != ''" />
+  </Target>
+  <Target Name="AfterBuild" AfterTargets="Build;Rebuild">
+    <CallTarget Targets="Test" Condition="'$(RunTests)' == 'true'" />
+    <CallTarget Targets="CreateZipFiles" Condition="'$(CreateZip)' == 'true'" />
+  </Target>
+  <Target Name="CleanArchiveFiles" AfterTargets="Clean">
+    <CreateItem Include="$(OutDir)\*.zip">
+      <Output TaskParameter="Include" ItemName="ArchiveWrites" />
+    </CreateItem>
+    <Delete Files="@(ArchiveWrites)" />
+  </Target>
+  <UsingTask TaskName="MSBuild.ExtensionPack.Compression.Zip" AssemblyFile="$(SolutionDir)Tools\MSBuildExtensionPack\MSBuild.ExtensionPack.dll" />
+  <Target Name="CreateZipFiles">
+    <ItemGroup>
+      <FilesToZip Include="$(OutputPath)\NuGetPackagesTidier.exe" />
+      <FilesToZip Include="$(OutputPath)\NuGetPackagesTidier.config" />
+      <FilesToZip Include="$(OutputPath)\NuGetPackagesTidier.pdb" />
+    </ItemGroup>
+    <MSBuild.ExtensionPack.Compression.Zip TaskAction="Create" CompressFiles="@(FilesToZip)" RemoveRoot="$(OutputPath)" ZipFileName="$(OutputPath)NuGetPackagesTidier_$(AssemblyVersion).zip" />
+  </Target>
+  <Target Name="RestorePackages" Condition="'$(TRAVIS)' == ''">
+    <PropertyGroup>
+      <NuGetToolsPath>$([System.IO.Path]::Combine($(SolutionDir), "Tools", "NuGet"))</NuGetToolsPath>
+      <NuGetExePath>$(NuGetToolsPath)\NuGet.exe</NuGetExePath>
+      <RequireRestoreConsent>false</RequireRestoreConsent>
+    </PropertyGroup>
+    <Message Text="Restoring NuGet packages..." Importance="normal" />
+    <Exec Condition="'$(OS)' == 'Unix'" Command="chmod +x %22$(NuGetExePath)%22" />
+    <Exec Command="$(DotNetExecPrefix)%22$(NuGetExePath)%22 restore %22$(SolutionFile)%22" LogStandardErrorAsError="true" />
+  </Target>
+  <Target Name="Test" Condition="'$(OS)' != 'Unix'">
+    <ItemGroup Condition="'$(TestTool)' == ''">
+      <TestTool Include="$(SolutionDir)packages\xunit.runner.console.*\tools\xunit.console.exe" />
+    </ItemGroup>
+    <PropertyGroup Condition="'$(TestTool)' == ''">
+      <TestTool>@(TestTool)</TestTool>
+    </PropertyGroup>
+    <ItemGroup>
+      <TestContainer Include="$(OutputPath)\NuGetPackagesTidier.*Test*.dll" />
+    </ItemGroup>
+    <Exec Condition="'$(OS)' == 'Unix'" Command="chmod +x %22$(TestTool)%22" />
+    <Exec Condition="'@(TestContainer->Count())' &gt; 0" Command="$(DotNetExecPrefix)%22$(TestTool)%22 @(TestContainer->'%22%(fullpath)%22', ' ')" WorkingDirectory="$(OutputPath)" />
+  </Target>
+  <Target Name="UpdateAssemblyConfiguration">
+    <PropertyGroup Condition="'$(APPVEYOR)' != ''">
+      <GitBranch>$(APPVEYOR_REPO_BRANCH)</GitBranch>
+      <GitCommit>$(APPVEYOR_REPO_COMMIT)</GitCommit>
+    </PropertyGroup>
+    <UpdateAssemblyConfiguration Condition="$(GitBranch) != '' and $(GitCommit) != ''" AssemblyInfoPath="$(SolutionDir)CommonAssemblyInfo.cs" Branch="$(GitBranch)" CommitId="$(GitCommit)" />
+  </Target>
+  <UsingTask
+    TaskName="UpdateAssemblyConfiguration"
+    TaskFactory="CodeTaskFactory"
+    AssemblyFile="$(CodeTaskFactoryAssembly)" >
+    <ParameterGroup>
+      <AssemblyInfoPath Required="true" />
+      <CommitId Required="true" />
+      <Branch Required="true" />
+    </ParameterGroup>
+    <Task>
+      <Using Namespace="System.IO" />
+      <Code Type="Fragment" Language="cs">
+        <![CDATA[
+          string content = File.ReadAllText(AssemblyInfoPath);
+          content = content.Replace("[assembly: AssemblyConfiguration(\"\")]", "[assembly: AssemblyConfiguration(\"" + CommitId + "|" + Branch + "\")]");
+          File.WriteAllText(AssemblyInfoPath, content);
+        ]]>
+      </Code>
+    </Task>
+  </UsingTask>
+  <PropertyGroup>
+    <ChangelogPath>$(SolutionDir)\..\changelog.md</ChangelogPath>
+  </PropertyGroup>
+  <Target Name="SetGitHubReleaseDescription" Condition="Exists('$(ChangelogPath)')">
+    <PropertyGroup>
+      <ReleaseDescription></ReleaseDescription>
+    </PropertyGroup>
+    <ReadLinesFromFile File="$(ChangelogPath)">
+      <Output TaskParameter="Lines" PropertyName="ReleaseDescription" />
+    </ReadLinesFromFile>
+    <PropertyGroup>
+      <ReleaseDescription>$(ReleaseDescription.Substring($(ReleaseDescription.IndexOf(`# NuGetPackagesTidier v$(AssemblyVersion)`))))</ReleaseDescription>
+      <ReleaseDescription>$(ReleaseDescription.Replace(`;`, `\n`))</ReleaseDescription>
+    </PropertyGroup>
+    <Exec Command="appveyor SetVariable -Name %22GitHubReleaseDescription%22 -Value %22$(ReleaseDescription)%22" />
+  </Target>
+</Project>

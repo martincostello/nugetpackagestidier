@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Dictionary>
+  <Words>
+    <Unrecognized>
+    </Unrecognized>
+    <Recognized>
+      <Word>NuGet</Word>
+    </Recognized>
+    <Deprecated>
+    </Deprecated>
+    <Compound>
+      <Term CompoundAlternate="NuGet">nuget</Term>
+    </Compound>
+    <DiscreteExceptions>
+    </DiscreteExceptions>
+  </Words>
+  <Acronyms>
+    <CasingExceptions>
+    </CasingExceptions>
+  </Acronyms>
+</Dictionary>
