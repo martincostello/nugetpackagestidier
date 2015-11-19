@@ -43,7 +43,7 @@
   <Target Name="CreateZipFiles">
     <ItemGroup>
       <FilesToZip Include="$(OutputPath)\NuGetPackagesTidier.exe" />
-      <FilesToZip Include="$(OutputPath)\NuGetPackagesTidier.config" />
+      <FilesToZip Include="$(OutputPath)\NuGetPackagesTidier.exe.config" />
       <FilesToZip Include="$(OutputPath)\NuGetPackagesTidier.pdb" />
     </ItemGroup>
     <MSBuild.ExtensionPack.Compression.Zip TaskAction="Create" CompressFiles="@(FilesToZip)" RemoveRoot="$(OutputPath)" ZipFileName="$(OutputPath)NuGetPackagesTidier_$(AssemblyVersion).zip" />
