@@ -1,13 +1,13 @@
 # NuGet Packages Tidier
 
-[![Build Status](https://img.shields.io/appveyor/ci/martincostello/nugetpackagestidier/master.svg)](https://ci.appveyor.com/project/martincostello/nugetpackagestidier)
+[![Build Status](https://img.shields.io/appveyor/ci/martincostello/nugetpackagestidier/main.svg)](https://ci.appveyor.com/project/martincostello/nugetpackagestidier)
 
 <!--
-[![Code Coveage](https://img.shields.io/coveralls/martincostello/nugetpackagestidier/master.svg)](https://coveralls.io/github/martincostello/nugetpackagestidier)
+[![Code Coveage](https://img.shields.io/coveralls/martincostello/nugetpackagestidier/main.svg)](https://coveralls.io/github/martincostello/nugetpackagestidier)
 
-[![Open GitHub Issues](https://img.shields.io/github/issues/martincostello/nugetpackagestidier.svg?label=Open%20Issues)](https://github.com/martincostello/nugetpackagestidier/issues) [![Latest GitHub Release](https://img.shields.io/github/release/martincostello/nugetpackagestidier.svg?label=Latest%20Release)](https://github.com/martincostello/nugetpackagestidier/releases/latest) [![License](https://img.shields.io/github/license/martincostello/nugetpackagestidier.svg?label=License)](https://github.com/martincostello/nugetpackagestidier/blob/master/license.txt)
+[![Open GitHub Issues](https://img.shields.io/github/issues/martincostello/nugetpackagestidier.svg?label=Open%20Issues)](https://github.com/martincostello/nugetpackagestidier/issues) [![Latest GitHub Release](https://img.shields.io/github/release/martincostello/nugetpackagestidier.svg?label=Latest%20Release)](https://github.com/martincostello/nugetpackagestidier/releases/latest) [![License](https://img.shields.io/github/license/martincostello/nugetpackagestidier.svg?label=License)](https://github.com/martincostello/nugetpackagestidier/blob/main/license.txt)
 
-[![Build History](https://ci-buildstats.azurewebsites.net/appveyor/chart/martincostello/nugetpackagestidier?branch=master&includeBuildsFromPullRequest=false)](https://ci.appveyor.com/project/martincostello/nugetpackagestidier)
+[![Build History](https://ci-buildstats.azurewebsites.net/appveyor/chart/martincostello/nugetpackagestidier?branch=main&includeBuildsFromPullRequest=false)](https://ci.appveyor.com/project/martincostello/nugetpackagestidier)
 -->
 
 ## Overview
